@@ -1,5 +1,5 @@
 # Automatic Montoring System
-| **BMSTU-IU5 learning practic** | 
+**| BMSTU-IU5 learning practic |**
 
 
 
