@@ -1,5 +1,5 @@
-# Automatic Montoring System
-**BMSTU-IU5** 
+# Automatic Montoring System / **BMSTU-IU5** 
+
 
 Пам парам 
 - пум пурум
