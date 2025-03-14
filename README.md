@@ -1,5 +1,5 @@
 # Automatic Montoring System
 | **BMSTU-IU5 learning practic** | 
 
-##About project
+## About project
 Пам парам парам пам пам
