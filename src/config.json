@@ -1,0 +1,6 @@
+{
+    "handler":{
+        "NET_POLLING_RATE": 60,
+        "NET_CLIENT_CONNECTION_TIMEOUT": 120
+    }
+}
