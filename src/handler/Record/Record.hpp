@@ -12,6 +12,7 @@ private:
     bool test;
     std::time_t time;
 public:
+    Record();
     Record(double temperature, double humidity, double brightness, bool test, std::time_t time);
     Record(const Record& other);
 

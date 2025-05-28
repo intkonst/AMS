@@ -1,7 +1,7 @@
 #include "RecordVector.hpp"
 
 
-const int NUMBER_OF_HANDLERS = 3;
+const int NUMBER_OF_HANDLERS = 2;
 
 RecordVector::RecordVector(nlohmann::json& source) {
     resize(NUMBER_OF_HANDLERS);
@@ -23,8 +23,8 @@ RecordVector::RecordVector(nlohmann::json& source) {
         }
         handler += std::to_string(i);
 
-        this->push_back(Record(source["devices"][handler]["temperature"], source["devices"][handler]["humidity"],
-            source["devices"][handler]["brightness"], source["devices"][handler]["test"], time));
+        this->operator[](i - 1) = Record(source["devices"][handler]["temperature"], source["devices"][handler]["humidity"],
+            source["devices"][handler]["brightness"], source["devices"][handler]["test"], time);
     }
 }
 
@@ -39,12 +39,14 @@ RecordVector& RecordVector::operator=(const RecordVector& other) {
     for (auto &&i : other) {
         push_back(i);
     }
+    return *this;
 }
 
 std::vector<std::string> RecordVector::insertQuery() const {
     std::vector<std::string> result(NUMBER_OF_HANDLERS);
+    int position = 0;
     for (auto &&i : *this) {
-        result.push_back(i.insertQuery());
+        result[position++] = i.insertQuery();
     }
 
     return result;

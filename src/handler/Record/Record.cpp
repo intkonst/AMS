@@ -1,7 +1,9 @@
 #include "Record.hpp"
 
 
-Record::Record(double temperature=0, double humidity=0, double brightness=0, bool test=0, std::time_t time=std::time(nullptr)) :
+Record::Record() : temperature(0), humidity(0), brightness(0), test(0), time(0) {}
+
+Record::Record(double temperature, double humidity, double brightness, bool test, std::time_t time) :
 temperature(temperature), humidity(humidity), brightness(brightness), test(test), time(time) {}
 
 Record::Record(const Record& other) : temperature(other.temperature), humidity(other.humidity), brightness(other.brightness),
@@ -13,6 +15,7 @@ Record& Record::operator=(const Record& other) {
     brightness = other.brightness;
     test = other.test;
     time = other.time;
+    return *this;
 }
 
 std::string Record::insertQuery() const {
