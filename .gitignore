@@ -2,3 +2,5 @@
 *.ex
 *.out
 *.exe
+.build
+.bin

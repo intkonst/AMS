@@ -1,8 +1,9 @@
 #include <iostream>
 #include <thread>
-#include <chrono>
-#include "./handler/handler.h"
-#include "./api/api.h"
+
+#include "handler/handler.h"
+#include "api/api.h"
+
 
 int main (int, char**) {
     std::cout << "[main]: main thread id: " <<  std::this_thread::get_id() << std::endl;
