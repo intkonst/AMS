@@ -2,7 +2,7 @@
 #include <nlohmann/json.hpp>
 #include <string>
 
-#include "Record.h"
+#include "record.h"
 
 
 struct RecordVector : std::vector<Record> {

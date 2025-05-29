@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.24)
 
 project(
     AMS
@@ -8,8 +8,6 @@ project(
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-include(FetchContent)
 
 set(AMS_SOURCES
     src/main.cc
@@ -26,14 +24,14 @@ set(AMS_HEADERS
     src/handler/db/record_vector.h
 )
 
+include(FetchContent)
+
 FetchContent_Declare(
-    nlohmann_json
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG v3.11.2
-    GIT_SHALLOW TRUE 
+    json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE 
 )
 
-FetchContent_MakeAvailable(nlohmann_json)
+FetchContent_MakeAvailable(json)
 
 add_executable(${PROJECT_NAME}
     ${AMS_SOURCES}
