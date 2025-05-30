@@ -1,3 +1,5 @@
+#pragma once
+
 #include <nlohmann/json.hpp>
 #include <ctime>
 #include <string>
@@ -6,14 +8,15 @@
 class Record
 {
 private:
+    std::string name;
     double temperature;
     double humidity;
     double brightness;
     bool test;
     std::time_t time;
 public:
-    Record();
-    Record(double temperature, double humidity, double brightness, bool test, std::time_t time);
+    Record() = default;
+    Record(std::string name, double temperature, double humidity, double brightness, bool test, std::time_t time);
     Record(const Record& other);
 
     Record& operator=(const Record& other);
