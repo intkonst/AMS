@@ -1,4 +1,9 @@
+#pragma once
+
+
 namespace api {
-    void api_main();
-    void example();
+
+void api_main();
+void example();
+
 }

@@ -13,6 +13,7 @@ set(AMS_SOURCES
     src/main.cc
     src/api/api.cc
     src/handler/handler.cc
+    src/handler/net/net.cc
     src/handler/db/record.cc
     src/handler/db/record_vector.cc
 )
@@ -20,6 +21,7 @@ set(AMS_SOURCES
 set(AMS_HEADERS
     src/api/api.h
     src/handler/handler.h
+    src/handler/net/net.h
     src/handler/db/record.h
     src/handler/db/record_vector.h
 )
