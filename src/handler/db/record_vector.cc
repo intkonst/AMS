@@ -10,8 +10,6 @@ RecordVector::RecordVector(nlohmann::json& source) {
     std::time_t time = std::mktime(&t);
 
     for (auto &&device : source["devices"].items()) {
-        auto x = device.key();
-        std::cout << x << std::endl;
         push_back(Record(device.key(), device.value()["temperature"], device.value()["humidity"],
         device.value()["brightness"], device.value()["test"], time));
     }
