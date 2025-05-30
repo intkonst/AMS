@@ -15,7 +15,7 @@ void thread_load_example() {
 }
 
 void api_main() {
-    std::cout << "[api]: run api thread with id: "<< std::this_thread::get_id() << std::endl;
+    std::cout << "[api]: run api thread with id="<< std::this_thread::get_id() << std::endl;
     thread_load_example();
     return;
 }

@@ -12,7 +12,7 @@
 
 namespace {
 
-const std::string PATH_TO_CONFIG_FILE = "config.json"; 
+const std::string CONFIG_FILE_NAME = "config.json"; 
 
 void thread_load_example() {
     std::cout << "[handler]: load test - wait 1 sec" << std::endl;
@@ -34,23 +34,21 @@ void handler_main() {
 
 Handler::Handler(){
 
-    std::cout << "[handler]: run handler thread with id: "<< std::this_thread::get_id() << std::endl;
-
-    // read data from config.json
-
-    std::ifstream file(PATH_TO_CONFIG_FILE);
+    std::cout << "[handler]: run handler thread with id="<< std::this_thread::get_id() << std::endl;
+    
+    //read file
+    
+    std::ifstream file(CONFIG_FILE_NAME);
 
     if (!file.is_open()) {
-        std::cerr << "Error: Could not open config file at " << PATH_TO_CONFIG_FILE << std::endl;
-        return; // или обработка ошибки
+        std::cerr << "Error: Could not open config file at " << CONFIG_FILE_NAME << std::endl;
+        return;
     }
     
-    // Проверка, что файл не пустой
     if (file.peek() == std::ifstream::traits_type::eof()) {
         std::cerr << "Error: Config file is empty" << std::endl;
         return;
     }
-
 
     auto config = nlohmann::json::parse(file);
 
@@ -65,15 +63,16 @@ Handler::Handler(){
     MAX_FILE_SIZE_ = logger_config["MAX_FILE_SIZE"];
     MAX_FILES_ = logger_config["MAX_FILES"];
 
-    // check
+    // check data
 
-    std::cout << NET_POLLING_RATE_ << std::endl;
-    std::cout << NET_CLIENT_CONNECTION_TIMEOUT_ << std::endl;
-    std::cout << LOGGER_NAME_ << std::endl;
-    std::cout << LOGGING_LEVEL_ << std::endl;
-    std::cout << PATH_TO_LOGGER_FILE_ << std::endl;
-    std::cout << MAX_FILE_SIZE_ << std::endl;
-    std::cout << MAX_FILES_ << std::endl;
+    std::cout << "[handler]: read config file" << std::endl;
+    std::cout << "NET_POLLING_RATE: " << NET_POLLING_RATE_ << std::endl;
+    std::cout << "NET_CLIENT_CONNECTION_TIMEOUT: " << NET_CLIENT_CONNECTION_TIMEOUT_ << std::endl;
+    std::cout << "LOGGER_NAME: " << LOGGER_NAME_ << std::endl;
+    std::cout << "LOGGING_LEVEL: " << LOGGING_LEVEL_ << std::endl;
+    std::cout << "PATH_TO_LOGGER_FILE: " << PATH_TO_LOGGER_FILE_ << std::endl;
+    std::cout << "MAX_FILE_SIZE: " << MAX_FILE_SIZE_ << std::endl;
+    std::cout << "MAX_FILES: " << MAX_FILES_ << std::endl;
 
 };
 
