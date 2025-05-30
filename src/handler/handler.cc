@@ -1,6 +1,8 @@
+#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <nlohmann/json_fwd.hpp>
+#include <ostream>
 #include <thread>
 
 #include <nlohmann/json.hpp>
@@ -33,11 +35,10 @@ void handler_main() {
 };
 
 Handler::Handler(){
-
     std::cout << "[handler]: run handler thread with id="<< std::this_thread::get_id() << std::endl;
     
-    //read file
-    
+    //read config file
+
     std::ifstream file(CONFIG_FILE_NAME);
 
     if (!file.is_open()) {
@@ -63,26 +64,39 @@ Handler::Handler(){
     MAX_FILE_SIZE_ = logger_config["MAX_FILE_SIZE"];
     MAX_FILES_ = logger_config["MAX_FILES"];
 
+    if (std::filesystem::exists("/log")) {
+        std::filesystem::remove("/log");
+    }
+
+
+    handler_logger_ = spdlog::rotating_logger_mt(LOGGER_NAME_, PATH_TO_LOGGER_FILE_,\
+         MAX_FILE_SIZE_, MAX_FILES_);
+    
+    handler_logger_->info("run handler thread logger");
+
+
     // check data
+    std::ostringstream out;  
 
-    std::cout << "[handler]: read config file" << std::endl;
-    std::cout << "NET_POLLING_RATE: " << NET_POLLING_RATE_ << std::endl;
-    std::cout << "NET_CLIENT_CONNECTION_TIMEOUT: " << NET_CLIENT_CONNECTION_TIMEOUT_ << std::endl;
-    std::cout << "LOGGER_NAME: " << LOGGER_NAME_ << std::endl;
-    std::cout << "LOGGING_LEVEL: " << LOGGING_LEVEL_ << std::endl;
-    std::cout << "PATH_TO_LOGGER_FILE: " << PATH_TO_LOGGER_FILE_ << std::endl;
-    std::cout << "MAX_FILE_SIZE: " << MAX_FILE_SIZE_ << std::endl;
-    std::cout << "MAX_FILES: " << MAX_FILES_ << std::endl;
-
+    out << "read config file" << std::endl
+        << "NET_POLLING_RATE: " << NET_POLLING_RATE_ << std::endl
+        << "NET_CLIENT_CONNECTION_TIMEOUT: " << NET_CLIENT_CONNECTION_TIMEOUT_ << std::endl
+        << "LOGGER_NAME: " << LOGGER_NAME_ << std::endl
+        << "LOGGING_LEVEL: " << LOGGING_LEVEL_ << std::endl
+        << "PATH_TO_LOGGER_FILE: " << PATH_TO_LOGGER_FILE_ << std::endl
+        << "MAX_FILE_SIZE: " << MAX_FILE_SIZE_ << std::endl
+        << "MAX_FILES: " << MAX_FILES_;
+    
+    handler_logger_->info(out.str()); 
 };
 
 void Handler::run() {
-    std::cout << "[handler]: run main mode" << std::endl;
+    handler_logger_->info("run main mode");
     thread_load_example();
 };
 
 Handler::~Handler() {
-    std::cout << "[handler]: exit handler" << std::endl;
+    handler_logger_->info("exit handler");
 };
 
 } // namespace handler
