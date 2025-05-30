@@ -63,26 +63,12 @@ add_executable(${PROJECT_NAME}
     ${AMS_HEADERS}
 )
 
-set(LOG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.bin/log")
-
-add_custom_command(
-    TARGET ${PROJECT_NAME} PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E remove_directory "${LOG_DIR}"
-    COMMENT "Removing old log directory..."
-)
-
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_CURRENT_SOURCE_DIR}/src/config.json
         ${CMAKE_CURRENT_SOURCE_DIR}/.bin/config.json
     COMMENT "Copying input files..."
-)
-
-add_custom_command(
-    TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E remove_directory "${LOG_DIR}"
-    COMMENT "Removing old log directory..."
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE 

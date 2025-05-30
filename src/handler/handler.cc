@@ -68,12 +68,10 @@ Handler::Handler(){
         std::filesystem::remove("/log");
     }
 
-
     handler_logger_ = spdlog::rotating_logger_mt(LOGGER_NAME_, PATH_TO_LOGGER_FILE_,\
          MAX_FILE_SIZE_, MAX_FILES_);
     
     handler_logger_->info("run handler thread logger");
-
 
     // check data
     std::ostringstream out;  
