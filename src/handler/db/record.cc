@@ -18,7 +18,7 @@ Record& Record::operator=(const Record& other) {
 }
 
 std::string Record::insertQuery() const {
-    return "INSERT INTO sencorData (tstamp, device_id, temperature, humidity, brightness, test) VALUES (" + std::to_string(time) +
+    return "INSERT INTO measuremnts (tstamp, device_id, temperature, humidity, brightness, test) VALUES (" + std::to_string(time) +
     ", " + name + ", " + std::to_string(temperature) + ", " + std::to_string(humidity) + ", " + std::to_string(brightness) + ", " +
     std::to_string(test) + ")";
 }
