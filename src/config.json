@@ -1,6 +1,13 @@
 {
     "handler":{
-        "NET_POLLING_RATE": 60,
-        "NET_CLIENT_CONNECTION_TIMEOUT": 120
+        "NET_POLLING_RATE": 60000,
+        "NET_CLIENT_CONNECTION_TIMEOUT": 120000,
+        "logger":{
+            "LOGGER_NAME": "handler",
+            "PATH_TO_LOGGER_FILE": "log/handler.log",
+            "LOGGING_LEVEL": "info",
+            "MAX_FILE_SIZE": 1024000,
+            "MAX_FILES": 3
+        }
     }
 }
