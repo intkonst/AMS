@@ -17,9 +17,9 @@ namespace {
 }  // namespace
 
 namespace api {
-    void thread_load_example() { std::this_thread::sleep_for(std::chrono::milliseconds(3000)); }
+    void threadLoadExample() { std::this_thread::sleep_for(std::chrono::milliseconds(3000)); }
 
-    void api_main() {
+    void apiMain() {
         /*ЧЕРНОВОЙ ВАРИАНТ ДЛЯ ТЕСТОВ, ПЕРЕДЕЛАТЬ ПОД ПОЛНОЦЕННЫЫЙ КЛАСС*/
 
         std::ifstream file(CONFIG_FILE_NAME);
@@ -55,7 +55,7 @@ namespace api {
         api_logger->info("run api thread with id=%T");
         out.clear();
         api_logger->info("run load test - wait 3 sec");
-        thread_load_example();
+        threadLoadExample();
         api_logger->info("load test completed");
     }
 }  // namespace api

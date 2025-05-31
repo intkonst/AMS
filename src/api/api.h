@@ -2,7 +2,7 @@
 
 namespace api {
 
-    void api_main();
+    void apiMain();
     void example();
 
 }  // namespace api

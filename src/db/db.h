@@ -5,23 +5,26 @@
 #include <libpq-fe.h>
 #include <string>
 
+namespace db {
+    class Database {
+        PGconn* conn_ = nullptr;
+        std::string conninfo_;
 
-class Database {
-  PGconn *conn = nullptr;
-  std::string conninfo;
+      public:
+        Database(const std::string& conninfo);
+        ~Database();
+        
+        bool createTableIfNotExists();
+        bool connect();
+        void printDatabase();
+        bool addRecord(const Record& rec);
+        bool checkDuplicates();
+        bool removeDuplicates();
+        bool ensureUniqueIndex();
+        bool addRecords(const RecordVector& records);
+        bool executeQuery(const std::string& query);
+    };
 
-public:
-  Database(const std::string &conninfo);
-  ~Database();
-  bool create_table_if_not_exists();
-  bool connect();
-  void printDatabase();
-  bool addRecord(const Record& rec);
-  bool checkDuplicates();
-  bool removeDuplicates();
-  bool ensureUniqueIndex();
-  bool addRecords(const RecordVector& records);
-  bool executeQuery(const std::string& query);
-};
+    // std::time_t string_to_tstamp(const std::string& datetime);
 
-std::time_t string_to_tstamp(const std::string& datetime);
+}  // namespace db

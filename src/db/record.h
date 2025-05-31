@@ -1,24 +1,25 @@
 #pragma once
 
-#include <nlohmann/json.hpp>
 #include <ctime>
 #include <string>
 
-class Record {
-  private:
-    double temperature;
-    double humidity;
-    double brightness;
-    bool test;
-    std::time_t time;
+namespace db {
+    class Record {
+      private:
+        std::string name;
+        double temperature;
+        double humidity;
+        double brightness;
+        bool test;
+        std::time_t time;
 
-  public:
-    Record();
-    Record(double temperature, double humidity, double brightness, bool test, std::time_t time);
-    Record(const Record& other);
+      public:
+        Record() = default;
+        Record(
+            const std::string& name, double temperature, double humidity, double brightness,
+            bool test, std::time_t time
+        );
 
-    Record& operator=(const Record& other);
-    std::string insertQuery() const;
-
-    ~Record() = default;
-};
+        std::string insertQuery() const;
+    };
+}  // namespace db
