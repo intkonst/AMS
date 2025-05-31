@@ -6,7 +6,6 @@
 
 #include "record.h"
 
-
 struct RecordVector : std::vector<Record> {
     RecordVector(nlohmann::json& source);
     RecordVector(const RecordVector& other);

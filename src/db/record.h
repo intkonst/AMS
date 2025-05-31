@@ -4,16 +4,15 @@
 #include <ctime>
 #include <string>
 
-
-class Record
-{
-private:
+class Record {
+  private:
     double temperature;
     double humidity;
     double brightness;
     bool test;
     std::time_t time;
-public:
+
+  public:
     Record();
     Record(double temperature, double humidity, double brightness, bool test, std::time_t time);
     Record(const Record& other);

@@ -3,54 +3,54 @@
 
 #include "db.h"
 
-Database::Database(const std::string &conninfo) : conninfo(conninfo) {}
+Database::Database(const std::string& conninfo) : conninfo(conninfo) {}
 
 Database::~Database() {
-  if (conn) {
-    PQfinish(conn);
-  }
+    if (conn) {
+        PQfinish(conn);
+    }
 }
 
 bool Database::connect() {
-  std::cout << "Connecting with conninfo: " << conninfo << std::endl;
-  conn = PQconnectdb(conninfo.c_str());
+    std::cout << "Connecting with conninfo: " << conninfo << std::endl;
+    conn = PQconnectdb(conninfo.c_str());
 
-  if (conn == nullptr) {
-    std::cerr << "[Database] PQconnectdb returned nullptr" << std::endl;
-    return false;
-  }
-  if (PQstatus(conn) != CONNECTION_OK) {
-    std::cerr << "[Database] Connection failed: " << PQerrorMessage(conn)
-              << std::endl;
-    PQfinish(conn);
-    conn = nullptr;
-    return false;
-  }
+    if (conn == nullptr) {
+        std::cerr << "[Database] PQconnectdb returned nullptr" << std::endl;
+        return false;
+    }
+    if (PQstatus(conn) != CONNECTION_OK) {
+        std::cerr << "[Database] Connection failed: " << PQerrorMessage(conn) << std::endl;
+        PQfinish(conn);
+        conn = nullptr;
+        return false;
+    }
 
-  std::cout << "[Database] Connected successfully.\n";
-  return true;
+    std::cout << "[Database] Connected successfully.\n";
+    return true;
 }
 
 bool Database::create_table_if_not_exists() {
-  const char *sql = "CREATE TABLE IF NOT EXISTS measurements ("
-                    "id SERIAL PRIMARY KEY, "
-                    "tstamp TIMESTAMP WITHOUT TIME ZONE, "
-                    "device_id TEXT, "
-                    "temperature REAL, "
-                    "humidity REAL, "
-                    "brightness REAL, "
-                    "test BOOLEAN, "
-                    "UNIQUE(tstamp, device_id)"
-                    ");";
+    const char* sql =
+        "CREATE TABLE IF NOT EXISTS measurements ("
+        "id SERIAL PRIMARY KEY, "
+        "tstamp TIMESTAMP WITHOUT TIME ZONE, "
+        "device_id TEXT, "
+        "temperature REAL, "
+        "humidity REAL, "
+        "brightness REAL, "
+        "test BOOLEAN, "
+        "UNIQUE(tstamp, device_id)"
+        ");";
 
-  PGresult *res = PQexec(conn, sql);
-  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-    std::cerr << "Create table failed: " << PQerrorMessage(conn) << std::endl;
+    PGresult* res = PQexec(conn, sql);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        std::cerr << "Create table failed: " << PQerrorMessage(conn) << std::endl;
+        PQclear(res);
+        return false;
+    }
     PQclear(res);
-    return false;
-  }
-  PQclear(res);
-  return true;
+    return true;
 }
 
 bool Database::checkDuplicates() {
@@ -118,52 +118,51 @@ bool Database::ensureUniqueIndex() {
     return true;
 }
 
-
 void Database::printDatabase() {
-  const char *query = "SELECT id, tstamp, device_id, temperature, humidity, "
-                      "brightness, test FROM measurements;";
-  PGresult *res = PQexec(conn, query);
+    const char* query =
+        "SELECT id, tstamp, device_id, temperature, humidity, "
+        "brightness, test FROM measurements;";
+    PGresult* res = PQexec(conn, query);
 
-  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-    std::cerr << "SELECT failed: " << PQerrorMessage(conn) << std::endl;
-    PQclear(res);
-    return;
-  }
-
-  int nrows = PQntuples(res);
-  int nfields = PQnfields(res);
-
-  const int col_width = 20;
-
-  for (int i = 0; i < nfields; i++) {
-    std::cout << std::left << std::setw(col_width) << PQfname(res, i);
-  }
-  std::cout << "\n" << std::string(nfields * col_width, '-') << "\n";
-
-  for (int i = 0; i < nrows; i++) {
-    for (int j = 0; j < nfields; j++) {
-      std::cout << std::left << std::setw(col_width) << PQgetvalue(res, i, j);
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        std::cerr << "SELECT failed: " << PQerrorMessage(conn) << std::endl;
+        PQclear(res);
+        return;
     }
-    std::cout << "\n";
-  }
 
-  PQclear(res);
+    int nrows = PQntuples(res);
+    int nfields = PQnfields(res);
+
+    const int col_width = 20;
+
+    for (int i = 0; i < nfields; i++) {
+        std::cout << std::left << std::setw(col_width) << PQfname(res, i);
+    }
+    std::cout << "\n" << std::string(nfields * col_width, '-') << "\n";
+
+    for (int i = 0; i < nrows; i++) {
+        for (int j = 0; j < nfields; j++) {
+            std::cout << std::left << std::setw(col_width) << PQgetvalue(res, i, j);
+        }
+        std::cout << "\n";
+    }
+
+    PQclear(res);
 }
 
-bool Database::addRecord(const Record &rec) {
-  std::string query = rec.insertQuery();
+bool Database::addRecord(const Record& rec) {
+    std::string query = rec.insertQuery();
 
-  PGresult *res = PQexec(conn, query.c_str());
+    PGresult* res = PQexec(conn, query.c_str());
 
-  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-    std::cerr << "[Database] Insert failed: " << PQerrorMessage(conn)
-              << std::endl;
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        std::cerr << "[Database] Insert failed: " << PQerrorMessage(conn) << std::endl;
+        PQclear(res);
+        return false;
+    }
+
     PQclear(res);
-    return false;
-  }
-
-  PQclear(res);
-  return true;
+    return true;
 }
 
 bool Database::addRecords(const RecordVector& records) {
@@ -180,15 +179,15 @@ bool Database::addRecords(const RecordVector& records) {
 }
 
 // unused code
-std::time_t stringToTstamp(const std::string &datetime) {
-  std::tm tm = {};
-  std::istringstream ss(datetime);
+std::time_t stringToTstamp(const std::string& datetime) {
+    std::tm tm = {};
+    std::istringstream ss(datetime);
 
-  ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
-  if (ss.fail()) {
-    throw std::runtime_error("Failed to parse datetime string: " + datetime);
-  }
-  return std::mktime(&tm);
+    ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+    if (ss.fail()) {
+        throw std::runtime_error("Failed to parse datetime string: " + datetime);
+    }
+    return std::mktime(&tm);
 }
 
 bool Database::executeQuery(const std::string& query) {
