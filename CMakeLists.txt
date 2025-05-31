@@ -9,26 +9,23 @@ project(
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(ADD_G3LOG_UNIT_TEST OFF CACHE BOOL "Skip g3log unit tests")
-set(ADD_FATAL_EXAMPLE OFF CACHE BOOL "Skip fatal example")
-set(ADD_G3LOG_PERFORMANCE OFF CACHE BOOL "Skip performance tests")
-
-
 set(AMS_SOURCES
     src/main.cc
     src/api/api.cc
+    src/db/db.cc
+    src/db/record.cc
+    src/db/record_vector.cc
     src/handler/handler.cc
     src/handler/net/net.cc
-    src/handler/db/record.cc
-    src/handler/db/record_vector.cc
 )
 
 set(AMS_HEADERS
     src/api/api.h
+    src/db/db.h
+    src/db/record.h
+    src/db/record_vector.h
     src/handler/handler.h
     src/handler/net/net.h
-    src/handler/db/record.h
-    src/handler/db/record_vector.h
 )
 
 configure_file(
@@ -39,14 +36,15 @@ configure_file(
 
 include(FetchContent)
 
-FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG release-1.12.1
-)
+# FetchContent_Declare(
+#     googletest
+#     URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.tar.gz
+#     DOWNLOAD_EXTRACT_TIMESTAMP TRUE 
+# )
 
 FetchContent_Declare(
-    json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
+    json
+    URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE 
 )
 
@@ -56,7 +54,7 @@ FetchContent_Declare(
     DOWNLOAD_EXTRACT_TIMESTAMP true
 )
 
-FetchContent_MakeAvailable(googletest json spdlog)
+FetchContent_MakeAvailable(json spdlog)
 
 add_executable(${PROJECT_NAME}
     ${AMS_SOURCES}
@@ -74,6 +72,7 @@ add_custom_command(
 target_link_libraries(${PROJECT_NAME} PRIVATE 
     spdlog::spdlog
     nlohmann_json::nlohmann_json
+    pq
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

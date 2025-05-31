@@ -1,3 +1,4 @@
 # Automatic Montoring System
 
-test commit3
+## dependencies
+ - Postgresql (install by your package manager)

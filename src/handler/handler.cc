@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <ostream>
+#include <string>
 #include <thread>
 
 #include <nlohmann/json.hpp>
@@ -13,28 +14,24 @@
 
 namespace {
 
-const std::string CONFIG_FILE_NAME = "config.json"; 
+const std::string CONFIG_FILE_NAME = "config.json";
+std::ostringstream out; // for custom output strings 
 
 void thread_load_example() {
-    std::cout << "[handler]: load test - wait 1 sec" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    std::cout << "[handler]: load test completed" << std::endl;
-    return;
 }
-
 
 } // namespace
 
 
 namespace handler {
 
-void handler_main() {
+void handler_main() { // entry point of a stream
     handler::Handler handler{};
     handler.run();
 };
 
-Handler::Handler(){
-    std::cout << "[handler]: run handler thread with id="<< std::this_thread::get_id() << std::endl;
+Handler::Handler(){ // init work mode
     
     //read config file
 
@@ -63,14 +60,17 @@ Handler::Handler(){
     MAX_FILE_SIZE_ = logger_config["MAX_FILE_SIZE"];
     MAX_FILES_ = logger_config["MAX_FILES"];
 
+    //create thread logger
 
     handler_logger_ = spdlog::rotating_logger_mt(LOGGER_NAME_, PATH_TO_LOGGER_FILE_,\
          MAX_FILE_SIZE_, MAX_FILES_);
     
     handler_logger_->info("run handler thread logger");
+    out << "run handler thread with id=" << std::this_thread::get_id();
+    handler_logger_->info(out.str());
+    out.clear();
 
-    // check data
-    std::ostringstream out;  
+    // check config data  
 
     out << "read config file" << std::endl
         << "NET_POLLING_RATE: " << NET_POLLING_RATE_ << std::endl
@@ -82,11 +82,14 @@ Handler::Handler(){
         << "MAX_FILES: " << MAX_FILES_;
     
     handler_logger_->info(out.str()); 
+    out.clear();
 };
 
-void Handler::run() {
-    handler_logger_->info("run main mode");
+void Handler::run() { // main work mode
+    handler_logger_->info("run main work mode");
+    handler_logger_->info("run load test - wait 1 sec");
     thread_load_example();
+    handler_logger_->info("load test completed");
 };
 
 Handler::~Handler() {

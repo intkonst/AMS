@@ -1,4 +1,14 @@
 {
+    "main":{
+        "logger":{
+            "LOGGER_NAME": "main",
+            "PATH_TO_LOGGER_FILE": "log/main.log",
+            "LOGGING_LEVEL": "info",
+            "MAX_FILE_SIZE": 1024000,
+            "MAX_FILES": 1
+        }
+    },
+
     "handler":{
         "NET_POLLING_RATE": 60000,
         "NET_CLIENT_CONNECTION_TIMEOUT": 120000,
@@ -7,7 +17,19 @@
             "PATH_TO_LOGGER_FILE": "log/handler.log",
             "LOGGING_LEVEL": "info",
             "MAX_FILE_SIZE": 1024000,
-            "MAX_FILES": 3
+            "MAX_FILES": 1
+        }
+    },
+
+    "api":{
+        "logger":{
+            "LOGGER_NAME": "api",
+            "PATH_TO_LOGGER_FILE": "log/api.log",
+            "LOGGING_LEVEL": "info",
+            "MAX_FILE_SIZE": 1024000,
+            "MAX_FILES": 1
         }
     }
+
+
 }
