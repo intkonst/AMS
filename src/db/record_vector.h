@@ -1,9 +1,10 @@
+#pragma once
+
 #include <vector>
 #include <nlohmann/json.hpp>
 #include <string>
 
 #include "record.h"
-
 
 struct RecordVector : std::vector<Record> {
     RecordVector(nlohmann::json& source);
