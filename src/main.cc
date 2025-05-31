@@ -56,7 +56,7 @@ int main(int, char**) {
 
     // create DB >> create object
 
-    std::thread api_thread(api::api_main);  // run api::api_main function in new api_thread
+    std::thread api_thread(api::apiMain);  // run api::api_main function in new api_thread
     std::thread handler_thread(handler::handler_main
     );  // run handler::handler_main function in new handler_thread
 
