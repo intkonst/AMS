@@ -1,11 +1,10 @@
-#include <filesystem>
 #include <iostream>
 #include <fstream>
-#include <nlohmann/json_fwd.hpp>
 #include <ostream>
 #include <thread>
 
 #include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 
@@ -64,9 +63,6 @@ Handler::Handler(){
     MAX_FILE_SIZE_ = logger_config["MAX_FILE_SIZE"];
     MAX_FILES_ = logger_config["MAX_FILES"];
 
-    if (std::filesystem::exists("/log")) {
-        std::filesystem::remove("/log");
-    }
 
     handler_logger_ = spdlog::rotating_logger_mt(LOGGER_NAME_, PATH_TO_LOGGER_FILE_,\
          MAX_FILE_SIZE_, MAX_FILES_);
