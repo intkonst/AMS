@@ -12,11 +12,13 @@ namespace db {
           test(test), time(time) {}
 
     std::string Record::insertQuery() const {
-        return "INSERT INTO measuremnts (tstamp, device_id, temperature, humidity, brightness, "
+        char string_time[20];
+        std::strftime(string_time, 20, "%Y-%m-%d %H:%M:%S", gmtime(&time));
+        return "INSERT INTO measurements (tstamp, device_id, temperature, humidity, brightness, "
                "test) "
-               "VALUES (" +
-               std::to_string(time) + ", " + name + ", " + std::to_string(temperature) + ", " +
+               "VALUES ('" +
+               std::string(string_time) + "', '" + name + "', " + std::to_string(temperature) + ", " +
                std::to_string(humidity) + ", " + std::to_string(brightness) + ", " +
-               std::to_string(test) + ")";
+               (test ? "true" : "false") + ")";
     }
 }  // namespace db
