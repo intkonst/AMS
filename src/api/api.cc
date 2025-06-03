@@ -23,7 +23,10 @@ namespace {
 namespace api {
     void threadLoadExample() { std::this_thread::sleep_for(std::chrono::milliseconds(3000)); }
 
-    Server::Server(db::Database database, std::string host, int port) : database(database), host(host), port(port), server() {
+    Server::Server(db::Database database, std::string host, int port) : database(database), host(host), port(port), server() {}
+
+    void Server::run() {
+        auto& database = this->database;
         server.Get("/api", [&database](const httplib::Request& req, httplib::Response& res) {
             std::string query = "SELECT * FROM measurements";
             std::vector<std::string> keys = {"id", "tstamp", "device_id", "temperature", "humidity", "brightness", "test"};
@@ -63,9 +66,12 @@ namespace api {
             }
 
             res.set_content(json.dump(), json_type);
+
+            PQclear(data);
         });
 
         server.listen(host, port);
+
     }
 
     void apiMain() {
