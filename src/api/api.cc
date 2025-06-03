@@ -11,6 +11,10 @@
 
 #include "api.h"
 
+#define json_type "application/json"
+#define html_type "text/html"
+
+
 namespace {
     const std::string CONFIG_FILE_NAME = "config.json";
     std::ostringstream out;
@@ -18,6 +22,23 @@ namespace {
 
 namespace api {
     void threadLoadExample() { std::this_thread::sleep_for(std::chrono::milliseconds(3000)); }
+
+    Server::Server(db::Database database, std::string host, int port) : database(database), host(host), port(port), server() {
+        server.Get("/api", [&database](const httplib::Request& req, httplib::Response& res) {
+            PGresult* data = database.executeQuery("SELECT * FROM measurements;");
+            nlohmann::json json;
+            std::vector<std::string> keys = {"id", "tstamp", "device_id", "temperature", "humidity", "brightness", "test"};
+            for (int i = 0; i < PQntuples(data); ++i) {
+                for (int j = 0; j < keys.size(); ++j) {
+                    json[i][keys[j]] = std::string(PQgetvalue(data, i, j));
+                }
+            }
+
+            res.set_content(json.dump(), json_type);
+        });
+
+        server.listen(host, port);
+    }
 
     void apiMain() {
         /*ЧЕРНОВОЙ ВАРИАНТ ДЛЯ ТЕСТОВ, ПЕРЕДЕЛАТЬ ПОД ПОЛНОЦЕННЫЫЙ КЛАСС*/
