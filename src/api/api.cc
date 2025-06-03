@@ -25,9 +25,37 @@ namespace api {
 
     Server::Server(db::Database database, std::string host, int port) : database(database), host(host), port(port), server() {
         server.Get("/api", [&database](const httplib::Request& req, httplib::Response& res) {
-            PGresult* data = database.executeQuery("SELECT * FROM measurements;");
-            nlohmann::json json;
+            std::string query = "SELECT * FROM measurements";
             std::vector<std::string> keys = {"id", "tstamp", "device_id", "temperature", "humidity", "brightness", "test"};
+
+            if (!req.params.empty()) {
+                auto isCorrect = [keys](std::string value) {
+                    for (auto &&key : keys) {
+                        if (key == value) {
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+
+                bool is_first = true;
+                for (auto &&param : req.params) {
+                    if (!isCorrect(param.first)) {
+                        return 400;
+                    }
+                query += " WHERE";
+                    if (is_first) {
+                        query += " WHERE ";
+                    } else {
+                        query += " AND ";
+                    }
+                    query += param.first + param.second;
+                }
+            }
+            query += ";";
+
+            PGresult* data = database.executeQuery(query);
+            nlohmann::json json;
             for (int i = 0; i < PQntuples(data); ++i) {
                 for (int j = 0; j < keys.size(); ++j) {
                     json[i][keys[j]] = std::string(PQgetvalue(data, i, j));
