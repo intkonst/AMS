@@ -23,7 +23,7 @@ namespace {
 namespace api {
     void threadLoadExample() { std::this_thread::sleep_for(std::chrono::milliseconds(3000)); }
 
-    Server::Server(db::Database database, std::string host, int port) : database(database), host(host), port(port), server() {}
+    Server::Server(db::Database& database, std::string host, int port) : database(database), host(host), port(port), server() {}
 
     void Server::run() {
         auto& database = this->database;
@@ -60,7 +60,7 @@ namespace api {
             PGresult* data = database.executeQuery(query);
             nlohmann::json json;
             for (int i = 0; i < PQntuples(data); ++i) {
-                for (int j = 0; j < keys.size(); ++j) {
+                for (int j = 0; j < PQnfields(data); ++j) {
                     json[i][keys[j]] = std::string(PQgetvalue(data, i, j));
                 }
             }
@@ -68,6 +68,44 @@ namespace api {
             res.set_content(json.dump(), json_type);
 
             PQclear(data);
+        });
+
+        server.Get("/", [&database](const httplib::Request& req, httplib::Response& res) {
+            std::string query = "SELECT * FROM measurements;";
+            // std::vector<std::string> keys = {"id", "tstamp", "device_id", "temperature", "humidity", "brightness", "test"};
+            std::string html = R"(
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Dynamic Table</title>
+                    <style>
+                        table { border-collapse: collapse; width: 100%; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                    </style>
+                </head>
+                <body>
+                    <table>
+            )";
+
+            PGresult* data = database.executeQuery(query);
+
+            for (int i = 0; i < PQntuples(data); ++i) {
+                html += "<tr>";
+                for (int j = 0; j < PQnfields(data); ++j) {
+                    html += "<td>" + std::string(PQgetvalue(data, i, j)) + "</td>";
+                }
+                html += "</tr>";
+            }
+
+            html += R"(
+                </table>
+            </body>
+            </html>
+            )";
+
+            res.set_content(html, html_type);
         });
 
         server.listen(host, port);
