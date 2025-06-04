@@ -16,7 +16,7 @@ set(AMS_SOURCES
     src/db/record.cc
     src/db/record_vector.cc
     src/handler/handler.cc
-    src/handler/net/net.cc
+    src/handler/sock/udp_server.cc
 )
 
 set(AMS_HEADERS
@@ -25,7 +25,7 @@ set(AMS_HEADERS
     src/db/record.h
     src/db/record_vector.h
     src/handler/handler.h
-    src/handler/net/net.h
+    src/handler/sock/udp_server.h
 )
 
 configure_file(

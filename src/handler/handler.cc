@@ -2,6 +2,7 @@
 #include <fstream>
 #include <ostream>
 #include <string>
+#include <strstream>
 #include <thread>
 
 #include <nlohmann/json.hpp>
@@ -10,11 +11,12 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 
 #include "handler.h"
+#include "sock/udp_server.h"
 
 namespace {
 
     const std::string ConfigFileName = "config.json";
-    std::ostringstream out;  // for custom output strings
+    std::ostrstream out;  // for custom output strings (temporary solution, change to formatting)
 
     void thread_load_example() { std::this_thread::sleep_for(std::chrono::milliseconds(1000)); }
 
@@ -29,24 +31,23 @@ namespace handler {
 
     Handler::Handler() {  // init work mode
 
-        // read config file
-
         std::ifstream file(ConfigFileName);
 
         if (!file) {
-            std::cerr << "Error: Could not open config file at " << ConfigFileName << std::endl;
+            handler_logger_->error("Error: Could not open config file at {}", ConfigFileName);
             return;
         }
 
-        if (file.peek() == std::ifstream::traits_type::eof()) {
-            std::cerr << "Error: Config file is empty" << std::endl;
-            return;
-        }
+        const auto config = nlohmann::json::parse(file);  // read json with config
 
-        const auto config = nlohmann::json::parse(file);
+        PollingRate_ = config["handler"]["POLLING_RATE"];
+        CountOfDevices_ = config["handler"]["COUNT_OF_DEVICES"];
 
-        NetPollingRate_ = config["handler"]["NET_POLLING_RATE"];
-        NetClientConnectionTimeout_ = config["handler"]["NET_CLIENT_CONNECTION_TIMEOUT"];
+        const auto& socket_config = config["handler"]["socket"];
+
+        SocketConnectionTimeout_ = socket_config["CONNECTION_TIMEOUT"];
+        SocketConnectionPort_ = socket_config["CONNECTION_PORT"];
+
 
         const auto& logger_config = config["handler"]["logger"];
 
@@ -56,43 +57,50 @@ namespace handler {
         MaxFileSize_ = logger_config["MAX_FILE_SIZE"];
         MaxFiles_ = logger_config["MAX_FILES"];
 
+
         // create thread logger
 
         handler_logger_ =
             spdlog::rotating_logger_mt(LoggerName_, PathToLoggerFile_, MaxFileSize_, MaxFiles_);
 
         handler_logger_->info("run handler thread logger");
+
         out << "run handler thread with id=" << std::this_thread::get_id();
         handler_logger_->info(out.str());
         out.clear();
 
-        // check config data
+        // output config data to logger for check
 
-        handler_logger_->info(
+        handler_logger_->debug(
             "read config file\n"
-            "NET_POLLING_RATE: {}\n"
-            "NET_CLIENT_CONNECTION_TIMEOUT: {}\n"
+            "POLLING_RATE: {}\n"
+            "COUNT_OF_DEVICES: {}\n"
+            "CONNECTION_TIMEOUT: {}\n"
+            "CONNECTION_PORT: {}\n"
             "LOGGER_NAME: {}\n"
             "LOGGING_LEVEL: {}\n"
             "PATH_TO_LOGGER_FILE: {}\n"
             "MAX_FILE_SIZE: {}\n"
             "MAX_FILES: {}",
-            NetPollingRate_, NetClientConnectionTimeout_, LoggerName_, LoggingLevel_,
-            PathToLoggerFile_, MaxFileSize_, MaxFiles_
+            PollingRate_, CountOfDevices_, SocketConnectionTimeout_, SocketConnectionPort_ , LoggerName_, LoggingLevel_, PathToLoggerFile_,
+            MaxFileSize_, MaxFiles_
         );
     }
 
     void Handler::run() {  // main work mode
         handler_logger_->info("run main work mode");
-        handler_logger_->info("run load test - wait 1 sec");
-        thread_load_example();
-        handler_logger_->info("load test completed");
+        handler_logger_->info("init udp server, wait devices connections...");
+        sock::Server udp_server(SocketConnectionPort_, CountOfDevices_, handler_logger_);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        udp_server.showConnectionList();
+
+        handler_logger_->info("run device handling");
     }
 
     Handler::~Handler() {
         if (handler_logger_) {
             handler_logger_->info("exit handler");
         }
-     }
+    }
 
 }  // namespace handler
