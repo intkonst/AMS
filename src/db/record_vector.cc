@@ -15,7 +15,7 @@ namespace db {
         std::tm t = {};
         std::string str_time = source["timestamp"];
         std::istringstream ss(str_time);
-        ss >> std::get_time(&t, "%Y-%b-%dT%H:%M:%S");
+        ss >> std::get_time(&t, "%Y-%m-%dT%H:%M:%S");
         std::time_t time = std::mktime(&t);
 
         for (const auto& device : devices.items()) {
