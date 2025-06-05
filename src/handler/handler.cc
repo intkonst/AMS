@@ -11,8 +11,10 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 
+
 #include "handler.h"
 #include "sock/udp_server.h"
+#include "../db/db.h"
 
 namespace {
 
@@ -41,7 +43,8 @@ namespace handler {
         handler.run();
     }
 
-    Handler::Handler() {  // init work mode
+    Handler::Handler() :  Database_("host=localhost dbname=test user=postgres") {  // init work mode
+       
 
         std::ifstream file(ConfigFileName);
 
@@ -84,7 +87,9 @@ namespace handler {
         handler_logger_->info(out.str());
         out.clear();
 
-        // output config data to logger for check
+        Database_.connect();
+        Database_.createTableIfNotExists();
+
 
         handler_logger_->debug(
             "read config file\n"
@@ -130,6 +135,12 @@ namespace handler {
             for (int indx = 0; indx < telemetry_all.size(); indx++) {
                 handler_logger_->info("#{} telemetry: {}", indx, telemetry_all[indx]);
             }
+
+
+
+            db::RecordVector data_to_db = telemetry_all;
+            Database_.addRecords(data_to_db);    
+
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
             handler_logger_->info("Polling iteration end, wait {} millis...", PollingRate_);
@@ -145,6 +156,9 @@ namespace handler {
             handler_logger_->info("#{} exit status: {}", indx,
             std::to_string(exit_all[indx]));
         }
+
+        Database_.printDatabase();
+
     }
 
     Handler::~Handler() {

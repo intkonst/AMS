@@ -8,7 +8,7 @@
 
 namespace db {
     struct RecordVector : std::vector<Record> {
-        RecordVector(const nlohmann::json& source);
+        RecordVector(const std::vector<char*> source);
         std::vector<std::string> insertQueries() const;
     };
 }  // namespace db

@@ -43,6 +43,12 @@ include(FetchContent)
 # )
 
 FetchContent_Declare(
+    cpp-httplib
+    GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
+    GIT_TAG v0.12.1
+)
+
+FetchContent_Declare(
     json
     URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE 
@@ -54,7 +60,7 @@ FetchContent_Declare(
     DOWNLOAD_EXTRACT_TIMESTAMP true
 )
 
-FetchContent_MakeAvailable(json spdlog)
+FetchContent_MakeAvailable(json spdlog cpp-httplib)
 
 add_executable(${PROJECT_NAME}
     ${AMS_SOURCES}
@@ -69,7 +75,8 @@ add_custom_command(
     COMMENT "Copying input files..."
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE 
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    httplib
     spdlog::spdlog
     nlohmann_json::nlohmann_json
     pq

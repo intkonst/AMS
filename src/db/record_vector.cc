@@ -7,7 +7,19 @@
 
 namespace db {
 
-    RecordVector::RecordVector(const nlohmann::json& source) {
+    RecordVector::RecordVector(const std::vector<char*> source) : vector(source.size()) {
+        std::time_t time = std::time(nullptr);
+
+        for (auto &&i : source) {
+            nlohmann::json json = nlohmann::json::parse(i);
+            for (auto &&i : json.items()) {
+                auto data = i.value();
+                emplace_back(i.key(), data["temperature"], data["humidity"], data["brightness"], data["test"], time);
+            }
+        }
+    }
+
+    /*RecordVector::RecordVector(const nlohmann::json& source) {
         const auto& devices = source["devices"];
 
         reserve(devices.size());
@@ -26,7 +38,7 @@ namespace db {
                 device_value["brightness"], device_value["test"], time
             );
         }
-    }
+    }*/
 
     std::vector<std::string> RecordVector::insertQueries() const {
         std::vector<std::string> result;

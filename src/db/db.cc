@@ -15,7 +15,7 @@ namespace db {
     bool Database::connect() {
         std::cout << "Connecting with conninfo: " << conninfo_ << std::endl;
 
-        if (!conn_) {
+        if (conn_) {
             std::cerr << "[Database] Already connected" << std::endl;
             return false;
         }
@@ -187,23 +187,39 @@ namespace db {
         return all_success;
     }
 
-    bool Database::executeQuery(const std::string& query) {
-        if (!conn_) {
-            std::cerr << "[Database] No connection to execute query.\n";
-            return false;
-        }
-
-        PGresult* res = PQexec(conn_, query.c_str());
-
-        if (PQresultStatus(res) != PGRES_COMMAND_OK && PQresultStatus(res) != PGRES_TUPLES_OK) {
-            std::cerr << "[Database] Query execution failed: " << PQerrorMessage(conn_)
-                      << std::endl;
-            PQclear(res);
-            return false;
-        }
-
-        PQclear(res);
-        return true;
+    PGresult* Database::executeQuery(const std::string& query) {
+    if (!conn_) {
+        std::cerr << "[Database] No connection to execute query.\n";
+        return nullptr;
     }
 
-}  // namespace db
+    PGresult* res = PQexec(conn_, query.c_str());
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK && PQresultStatus(res) != PGRES_TUPLES_OK) {
+        std::cerr << "[Database] Query execution failed: " << PQerrorMessage(conn_) << std::endl;
+        PQclear(res);
+        return nullptr;
+    }
+
+    return res;  // Возвращаем результат, не очищая
+}
+
+
+    // std::time_t stringToTstamp(const std::string& datetime) {
+    //     std::tm tm = {};
+    //     std::istringstream ss(datetime);
+
+    //     ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+    //     if (ss.fail()) {
+    //         throw std::runtime_error("Failed to parse datetime string: " + datetime);
+    //     }
+    //     return std::mktime(&tm);
+    // }
+
+}  // namespace db:istringstream ss(datetime);
+
+    //     ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+    //     if (ss.fail()) {
+    //         throw std::runtime_error("Failed to parse datetime string: " + datetime);
+    //     }
+    //     return std::mktime(&tm);

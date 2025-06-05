@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../db/db.h"
+
 #include <string>
 
 #include <spdlog/logger.h>
@@ -15,6 +17,7 @@ namespace handler {
         int SocketConnectionTimeout_;
         int CountOfPolls_;
         int SocketConnectionPort_;
+        db::Database Database_;
 
         std::string LoggerName_;
         std::string PathToLoggerFile_;

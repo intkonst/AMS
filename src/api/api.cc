@@ -8,6 +8,7 @@
 #include <nlohmann/json.hpp>
 #include <spdlog/logger.h>
 #include <spdlog/sinks/rotating_file_sink.h>
+#include <httplib.h>
 
 #include "api.h"
 
