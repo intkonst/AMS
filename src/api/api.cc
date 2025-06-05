@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 
+#include <httplib.h>
 #include <nlohmann/json.hpp>
 #include <spdlog/logger.h>
 #include <spdlog/sinks/rotating_file_sink.h>

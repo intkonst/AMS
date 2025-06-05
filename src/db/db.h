@@ -13,7 +13,7 @@ namespace db {
       public:
         Database(const std::string& conninfo);
         ~Database();
-        
+
         bool createTableIfNotExists();
         bool connect();
         void printDatabase();
@@ -22,7 +22,7 @@ namespace db {
         bool removeDuplicates();
         bool ensureUniqueIndex();
         bool addRecords(const RecordVector& records);
-        bool executeQuery(const std::string& query);
+        PGresult* executeQuery(const std::string& query);
     };
 
     // std::time_t string_to_tstamp(const std::string& datetime);

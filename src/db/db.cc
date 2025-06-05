@@ -187,24 +187,23 @@ namespace db {
         return all_success;
     }
 
-    bool Database::executeQuery(const std::string& query) {
-        if (!conn_) {
-            std::cerr << "[Database] No connection to execute query.\n";
-            return false;
-        }
-
-        PGresult* res = PQexec(conn_, query.c_str());
-
-        if (PQresultStatus(res) != PGRES_COMMAND_OK && PQresultStatus(res) != PGRES_TUPLES_OK) {
-            std::cerr << "[Database] Query execution failed: " << PQerrorMessage(conn_)
-                      << std::endl;
-            PQclear(res);
-            return false;
-        }
-
-        PQclear(res);
-        return true;
+    PGresult* Database::executeQuery(const std::string& query) {
+    if (!conn_) {
+        std::cerr << "[Database] No connection to execute query.\n";
+        return nullptr;
     }
+
+    PGresult* res = PQexec(conn_, query.c_str());
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK && PQresultStatus(res) != PGRES_TUPLES_OK) {
+        std::cerr << "[Database] Query execution failed: " << PQerrorMessage(conn_) << std::endl;
+        PQclear(res);
+        return nullptr;
+    }
+
+    return res;  // Возвращаем результат, не очищая
+}
+
 
     // std::time_t stringToTstamp(const std::string& datetime) {
     //     std::tm tm = {};
