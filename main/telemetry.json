@@ -1,8 +1,10 @@
-{
 
-"temperature": 0.0,
-"humidity": 0.0,
-"brightness": 0.0,
-"test": false
-    
+{
+"192.168.1.1": {
+      "temperature": 0.0,
+      "humidity": 0.0,
+      "brightness": 0.0,
+      "test": false
+    }
 }
+

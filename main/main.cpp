@@ -14,17 +14,21 @@
 #include <cstring>
 
 #include "/home/intkonst/esp/esp-idf/components/json/cJSON/cJSON.h"
+
+// #include "/home/intkonst/esp/DHT22-lib-for-esp-idf/include/DHT.h"
+// #include "/home/intkonst/esp/DHT22-lib-for-esp-idf/include/DHT.hpp"
+
 #include <string.h>
 #include <string>
 
 // Настройки Wi-Fi
-#define WIFI_SSID "Linkline"
-#define WIFI_PASS "TV0109hd!."
+#define WIFI_SSID "limon"
+#define WIFI_PASS "iqag0550"
 
 // Настройки UDP
-#define HOST_IP_ADDR "192.168.1.7"  // IP сервера
-#define PORT 5556                   // Порт сервера
-#define UDP_BUF_SIZE 1024           // Размер буфера
+#define HOST_IP_ADDR "192.168.235.74"  // IP сервера
+#define PORT 5552                      // Порт сервера
+#define UDP_BUF_SIZE 1024              // Размер буфера
 
 namespace message_keys {
     auto NewConnection = "S0VZX05FV19DT05ORUNUSU9O";
@@ -37,6 +41,7 @@ namespace message_keys {
 }  // namespace message_keys
 
 static const char* TAG = "UDP_EXAMPLE";
+char client_ip[16];
 
 // Объявляем функции перед использованием
 static void wifi_event_handler(
@@ -106,9 +111,12 @@ static void wifi_event_handler(
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "Получен IP:" IPSTR, IP2STR(&event->ip_info.ip));
+        esp_ip4_addr_t ip = event->ip_info.ip;
+
+        // Форматируем IP-адрес в строку
+        snprintf(client_ip, sizeof(client_ip), IPSTR, IP2STR(&ip));
     }
 }
-
 // UDP клиент
 extern "C" void app_main() {
     // Инициализация NVS
@@ -124,7 +132,7 @@ extern "C" void app_main() {
 
     // Ждём подключения Wi-Fi (реализуйте это через событие IP_EVENT_STA_GOT_IP)
     // Временное решение - задержка (не рекомендуется для production)
-    vTaskDelay(8000 / portTICK_PERIOD_MS);
+    vTaskDelay(15000 / portTICK_PERIOD_MS);
 
     ESP_LOGI(TAG, "Run UDP client");
     int sockfd;
@@ -140,7 +148,7 @@ extern "C" void app_main() {
 
     // Устанавливаем таймаут на получение данных (5 секунд)
     struct timeval tv;
-    tv.tv_sec = 5;
+    tv.tv_sec = 10;
     tv.tv_usec = 0;
     setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
@@ -174,7 +182,6 @@ extern "C" void app_main() {
         ESP_LOGI(TAG, "Recv message: %s", buffer);
     }
 
-
     if (!std::strcmp(buffer, message_keys::StatusSuccessfulConnection)) {
         while (true) {
             socklen_t len = sizeof(servaddr);
@@ -183,10 +190,7 @@ extern "C" void app_main() {
                 recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0, (struct sockaddr*) &servaddr, &len);
             if (n < 0) {
                 ESP_LOGE(TAG, "Recv failed, errno=%d", errno);
-                sendto(
-                    sockfd, "", 0, 0,
-                    (const struct sockaddr*) &servaddr, sizeof(servaddr)
-                );
+                sendto(sockfd, "", 0, 0, (const struct sockaddr*) &servaddr, sizeof(servaddr));
             } else {
                 buffer[n] = '\0';
                 ESP_LOGI(TAG, "Recv message: %s", buffer);
@@ -211,6 +215,7 @@ extern "C" void app_main() {
                 float humidity = 0.76f;
                 float brightness = 0.56f;
                 bool test = true;
+                const char* ip_address = "192.168.1.1";  // или получайте реальный IP
 
                 // Создаем JSON-объект
                 cJSON* root = cJSON_CreateObject();
@@ -219,21 +224,37 @@ extern "C" void app_main() {
                     return;
                 }
 
-                // Добавляем значения
-                cJSON_AddNumberToObject(root, "temperature", temperature);
-                cJSON_AddNumberToObject(root, "humidity", humidity);
-                cJSON_AddNumberToObject(root, "brightness", brightness);
-                cJSON_AddBoolToObject(root, "test", test);
+                // Создаем вложенный объект для IP-адреса
+                cJSON* ip_object = cJSON_CreateObject();
+                if (ip_object == NULL) {
+                    cJSON_Delete(root);
+                    return;
+                }
 
-                // Сериализуем в строку с форматированием
-                
+                // Добавляем значения во вложенный объект
+                cJSON_AddNumberToObject(ip_object, "temperature", temperature);
+                cJSON_AddNumberToObject(ip_object, "humidity", humidity);
+                cJSON_AddNumberToObject(ip_object, "brightness", brightness);
+                cJSON_AddBoolToObject(ip_object, "test", test);
+
+                // Добавляем вложенный объект в основной объект по ключу IP-адреса
+                cJSON_AddItemToObject(root, client_ip, ip_object);
+
+                // Сериализуем в строку без форматирования
                 char* json_data = cJSON_PrintUnformatted(root);
+                if (json_data == NULL) {
+                    cJSON_Delete(root);
+                    return;
+                }
 
+                // Отправляем данные
                 sendto(
-                    sockfd, json_data, strlen(json_data), 0,
-                    (const struct sockaddr*) &servaddr, sizeof(servaddr)
+                    sockfd, json_data, strlen(json_data), 0, (const struct sockaddr*) &servaddr,
+                    sizeof(servaddr)
                 );
-                // Удаляем JSON-объект
+
+                // Освобождаем память
+                free(json_data);
                 cJSON_Delete(root);
 
             } else if (!std::strcmp(buffer, message_keys::Exit)) {
