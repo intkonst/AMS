@@ -6,6 +6,7 @@
 #include <thread>
 
 #include <nlohmann/json.hpp>
+#include <vector>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
@@ -19,6 +20,17 @@ namespace {
     std::ostrstream out;  // for custom output strings (temporary solution, change to formatting)
 
     void thread_load_example() { std::this_thread::sleep_for(std::chrono::milliseconds(1000)); }
+
+    std::time_t stringToTstamp(const std::string& datetime) {
+        std::tm tm = {};
+        std::istringstream ss(datetime);
+
+        ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+        if (ss.fail()) {
+            throw std::runtime_error("Failed to parse datetime string: " + datetime);
+        }
+        return std::mktime(&tm);
+    }
 
 }  // namespace
 
@@ -59,10 +71,13 @@ namespace handler {
 
 
         // create thread logger
+        
 
         handler_logger_ =
             spdlog::rotating_logger_mt(LoggerName_, PathToLoggerFile_, MaxFileSize_, MaxFiles_);
 
+        handler_logger_->flush_on(spdlog::level::info); 
+        spdlog::flush_every(std::chrono::seconds(1));
         handler_logger_->info("run handler thread logger");
 
         out << "run handler thread with id=" << std::this_thread::get_id();
@@ -91,10 +106,37 @@ namespace handler {
         handler_logger_->info("run main work mode");
         handler_logger_->info("init udp server, wait devices connections...");
         sock::Server udp_server(SocketConnectionPort_, CountOfDevices_, handler_logger_);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         udp_server.showConnectionList();
-
+        handler_logger_->info("init mode finish");
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         handler_logger_->info("run device handling");
+
+        handler_logger_->info("server ping all");
+
+        std::vector<bool> ping_all = udp_server.pingAll();
+        for (int indx=0; indx<ping_all.size(); indx++) {
+            handler_logger_->info("#{} is online: {}", indx, std::to_string(ping_all[indx]));
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+
+        handler_logger_->info("server get telemetry all");
+
+        std::vector<char*> telemetry_all= udp_server.getTelemetryAll();
+        for (int indx=0; indx<telemetry_all.size(); indx++) {
+            handler_logger_->info("#{} telemetry: {}", indx, telemetry_all[indx]);
+        }        
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+
+        handler_logger_->info("server exit all");
+
+        std::vector<bool> exit_all = udp_server.exitAll();
+        for (int indx=0; indx<exit_all.size(); indx++) {
+            handler_logger_->info("#{} exit status: {}", indx, std::to_string(exit_all[indx]));
+        }
+
+        
     }
 
     Handler::~Handler() {

@@ -47,12 +47,13 @@ namespace sock {
         void setTimeOut();
 
         void showConnectionList();
-
+        bool deviceExit(Device);
         bool ping(Device);
         char* getTelemetry(Device);
         char* getStatus(Device);
 
         std::vector<bool> pingAll();
+        std::vector<bool> exitAll();
         std::vector<char*> getTelemetryAll();
         ~Server();
     };

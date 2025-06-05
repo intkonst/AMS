@@ -27,6 +27,7 @@ namespace message_keys {
     auto GetDeviceStatus = "S0VZX0dFVF9ERVZJQ0VfU1RBVFVT";
     auto StatusFailedConnection = "S0VZX1NUQVRVU19GQUlMRURfQ09OTkVDVElPTg==";
     auto StatusSuccessfulConnection = "S0VZX1NUQVRVU19TVUNDRVNTRlVMX0NPTk5FQ1RJT04=";
+    auto Exit = "S0VZX0VYSVQ=";
 }  // namespace message_keys
 
 namespace sock {
@@ -57,7 +58,7 @@ namespace sock {
     Device::~Device() {}
 
   
-    std::ostream& operator<<(std::ostream& os, const Device& device) { // переделать last session под приватную переменную
+    std::ostream& operator<<(std::ostream& os, const Device& device) { 
         char time_buf[80];
         std::strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", std::localtime(&device.last_session_));
         
@@ -107,7 +108,7 @@ namespace sock {
             );
             recv_buffer_[n] = '\0';
 
-            logger_->debug(
+            logger_->info(
                 "New connection | recv: {}, ip address: {}", recv_buffer_,
                 inet_ntoa(device_addr_.sin_addr)
             );
@@ -170,6 +171,33 @@ namespace sock {
         return !std::strcmp(recv_buffer_, message_keys::StatusSuccessfulConnection);
     }
 
+    bool Server::deviceExit(Device obj){
+
+        //send
+        setTimeOut();
+        struct sockaddr_in addr = obj.getAddr(); 
+        socklen_t len = sizeof(addr);
+        sendto(sockfd_, message_keys::Exit, strlen(message_keys::Exit), 0,\
+         (struct sockaddr*) &addr, len);
+
+        //recv
+        int n = recvfrom(
+            sockfd_, recv_buffer_, sizeof(recv_buffer_), 0, (struct sockaddr*) &device_addr_,
+            &len
+        );
+        
+        if (n == -1) {
+            logger_->error("Failed exit {}, device not response", inet_ntoa(device_addr_.sin_addr));
+            return false;
+        }
+
+        obj.updateLastSession();
+
+        recv_buffer_[n] = '\0';
+
+        return !std::strcmp(recv_buffer_, message_keys::Exit);
+    }
+
     char* Server::getTelemetry(Device obj){
         //send
         setTimeOut();
@@ -214,7 +242,7 @@ namespace sock {
             logger_->error("Failed ping {}, device not response", inet_ntoa(device_addr_.sin_addr));
             return (char *) message_keys::StatusFailedConnection;
         }
-        
+
         recv_buffer_[n] = '\0';
 
         obj.updateLastSession();
@@ -239,6 +267,14 @@ namespace sock {
             all_ping.push_back(Server::ping(device_list_[indx]));
         }
         return all_ping;
+    }
+
+    std::vector<bool> Server::exitAll() {
+        std::vector<bool> all_exit;
+        for (size_t indx=0; indx<count_of_devices_; indx++) {
+            all_exit.push_back(Server::deviceExit(device_list_[indx]));
+        }
+        return all_exit;
     }
 
     std::vector<char*> Server::getTelemetryAll() {
