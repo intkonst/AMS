@@ -26,15 +26,15 @@ int main(int, char**) {
 
     std::ifstream file(CONFIG_FILE_NAME);
 
-    if (!file.is_open()) {
+    if (!file) {  // check file exist
         std::cerr << "Error: Could not open config file at " << CONFIG_FILE_NAME << std::endl;
         return 1;
     }
 
-    if (file.peek() == std::ifstream::traits_type::eof()) {
-        std::cerr << "Error: Config file is empty" << std::endl;
-        return 1;
-    }
+    // if (file.peek() == std::ifstream::traits_type::eof()) {
+    //     std::cerr << "Error: Config file is empty" << std::endl;
+    //     return 1;
+    // } // add config file data validation
 
     auto config = nlohmann::json::parse(file);
 

@@ -10,8 +10,11 @@ namespace handler {
 
     class Handler {
       private:
-        int NetPollingRate_;
-        int NetClientConnectionTimeout_;
+        int PollingRate_;
+        int CountOfDevices_;
+        int SocketConnectionTimeout_;
+        int CountOfPolls_;
+        int SocketConnectionPort_;
 
         std::string LoggerName_;
         std::string PathToLoggerFile_;

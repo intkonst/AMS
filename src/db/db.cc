@@ -206,15 +206,4 @@ namespace db {
         return true;
     }
 
-    // std::time_t stringToTstamp(const std::string& datetime) {
-    //     std::tm tm = {};
-    //     std::istringstream ss(datetime);
-
-    //     ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
-    //     if (ss.fail()) {
-    //         throw std::runtime_error("Failed to parse datetime string: " + datetime);
-    //     }
-    //     return std::mktime(&tm);
-    // }
-
 }  // namespace db

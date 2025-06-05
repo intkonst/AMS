@@ -10,8 +10,13 @@
     },
 
     "handler":{
-        "NET_POLLING_RATE": 60000,
-        "NET_CLIENT_CONNECTION_TIMEOUT": 120000,
+        "POLLING_RATE": 2000,
+        "COUNT_OF_POLLS": 10,
+        "COUNT_OF_DEVICES": 1,
+        "socket": {
+            "CONNECTION_PORT": 5552,
+            "CONNECTION_TIMEOUT": 2
+        },
         "logger":{
             "LOGGER_NAME": "handler",
             "PATH_TO_LOGGER_FILE": "log/handler.log",

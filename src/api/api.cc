@@ -12,7 +12,7 @@
 #include "api.h"
 
 namespace {
-    const std::string CONFIG_FILE_NAME = "config.json";
+    const std::string ConfigFileName = "config.json";
     std::ostringstream out;
 }  // namespace
 
@@ -22,11 +22,11 @@ namespace api {
     void apiMain() {
         /*ЧЕРНОВОЙ ВАРИАНТ ДЛЯ ТЕСТОВ, ПЕРЕДЕЛАТЬ ПОД ПОЛНОЦЕННЫЫЙ КЛАСС*/
 
-        std::ifstream file(CONFIG_FILE_NAME);
+        std::ifstream file(ConfigFileName);
 
         /*if (!file.is_open()) {*/
         if (!file) {
-            std::cerr << "Error: Could not open config file at " << CONFIG_FILE_NAME << std::endl;
+            std::cerr << "Error: Could not open config file at " << ConfigFileName << std::endl;
             return;
         }
 
@@ -39,14 +39,14 @@ namespace api {
 
         auto& logger_config = config["api"]["logger"];
 
-        const std::string& LOGGER_NAME = logger_config["LOGGER_NAME"];
-        const std::string& PATH_TO_LOGGER_FILE = logger_config["PATH_TO_LOGGER_FILE"];
-        const std::string& LOGGING_LEVEL = logger_config["LOGGING_LEVEL"];
-        int MAX_FILE_SIZE = logger_config["MAX_FILE_SIZE"];
-        int MAX_FILES = logger_config["MAX_FILES"];
+        const std::string& LoggerName = logger_config["LOGGER_NAME"];
+        const std::string& PathToLoggerFile = logger_config["PATH_TO_LOGGER_FILE"];
+        const std::string& LoggingLevel = logger_config["LOGGING_LEVEL"];
+        int MaxFileSize = logger_config["MAX_FILE_SIZE"];
+        int MaxFiles = logger_config["MAX_FILES"];
 
         auto api_logger =
-            spdlog::rotating_logger_mt(LOGGER_NAME, PATH_TO_LOGGER_FILE, MAX_FILE_SIZE, MAX_FILES);
+            spdlog::rotating_logger_mt(LoggerName, PathToLoggerFile, MaxFileSize, MaxFiles);
 
         api_logger->info("run api thread logger");
 
