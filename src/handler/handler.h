@@ -13,6 +13,7 @@ namespace handler {
         int PollingRate_;
         int CountOfDevices_;
         int SocketConnectionTimeout_;
+        int CountOfPolls_;
         int SocketConnectionPort_;
 
         std::string LoggerName_;

@@ -92,13 +92,13 @@ namespace sock {
         serv_addr_.sin_port = htons(port_);
 
         if (bind(sockfd_, (const struct sockaddr*) &serv_addr_, sizeof(serv_addr_)) < 0) {
-            logger_->error("Sscket bind error");
+            logger_->error("socket bind error");
 
             close(sockfd_);
             return;
         }
 
-        logger_->info("Server bind to port {}", port_);
+        logger_->info("server bind to port {}", port_);
 
         while (count_of_devices != 0) {
             socklen_t len = sizeof(device_addr_);

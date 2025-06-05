@@ -10,10 +10,11 @@
     },
 
     "handler":{
-        "POLLING_RATE": 60000,
+        "POLLING_RATE": 2000,
+        "COUNT_OF_POLLS": 10,
         "COUNT_OF_DEVICES": 1,
         "socket": {
-            "CONNECTION_PORT": 5556,
+            "CONNECTION_PORT": 5552,
             "CONNECTION_TIMEOUT": 2
         },
         "logger":{

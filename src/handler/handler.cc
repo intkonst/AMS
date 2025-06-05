@@ -52,16 +52,18 @@ namespace handler {
 
         const auto config = nlohmann::json::parse(file);  // read json with config
 
-        PollingRate_ = config["handler"]["POLLING_RATE"];
-        CountOfDevices_ = config["handler"]["COUNT_OF_DEVICES"];
+        const auto& handler_config = config["handler"];
 
-        const auto& socket_config = config["handler"]["socket"];
+        PollingRate_ = handler_config["POLLING_RATE"];
+        CountOfDevices_ = handler_config["COUNT_OF_DEVICES"];
+        CountOfPolls_ = handler_config["COUNT_OF_POLLS"];
+
+        const auto& socket_config = handler_config["socket"];
 
         SocketConnectionTimeout_ = socket_config["CONNECTION_TIMEOUT"];
         SocketConnectionPort_ = socket_config["CONNECTION_PORT"];
 
-
-        const auto& logger_config = config["handler"]["logger"];
+        const auto& logger_config = handler_config["logger"];
 
         LoggerName_ = logger_config["LOGGER_NAME"];
         PathToLoggerFile_ = logger_config["PATH_TO_LOGGER_FILE"];
@@ -69,14 +71,12 @@ namespace handler {
         MaxFileSize_ = logger_config["MAX_FILE_SIZE"];
         MaxFiles_ = logger_config["MAX_FILES"];
 
-
         // create thread logger
-        
 
         handler_logger_ =
             spdlog::rotating_logger_mt(LoggerName_, PathToLoggerFile_, MaxFileSize_, MaxFiles_);
 
-        handler_logger_->flush_on(spdlog::level::info); 
+        handler_logger_->flush_on(spdlog::level::info);
         spdlog::flush_every(std::chrono::seconds(1));
         handler_logger_->info("run handler thread logger");
 
@@ -97,8 +97,8 @@ namespace handler {
             "PATH_TO_LOGGER_FILE: {}\n"
             "MAX_FILE_SIZE: {}\n"
             "MAX_FILES: {}",
-            PollingRate_, CountOfDevices_, SocketConnectionTimeout_, SocketConnectionPort_ , LoggerName_, LoggingLevel_, PathToLoggerFile_,
-            MaxFileSize_, MaxFiles_
+            PollingRate_, CountOfDevices_, SocketConnectionTimeout_, SocketConnectionPort_,
+            LoggerName_, LoggingLevel_, PathToLoggerFile_, MaxFileSize_, MaxFiles_
         );
     }
 
@@ -111,32 +111,40 @@ namespace handler {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         handler_logger_->info("run device handling");
 
-        handler_logger_->info("server ping all");
+        while (true) {
+            handler_logger_->info("server ping all");
 
-        std::vector<bool> ping_all = udp_server.pingAll();
-        for (int indx=0; indx<ping_all.size(); indx++) {
-            handler_logger_->info("#{} is online: {}", indx, std::to_string(ping_all[indx]));
+            if (CountOfPolls_ == 0) { break; }
+
+            CountOfPolls_--;
+
+            std::vector<bool> ping_all = udp_server.pingAll();
+            for (int indx = 0; indx < ping_all.size(); indx++) {
+                handler_logger_->info("#{} is online: {}", indx, std::to_string(ping_all[indx]));
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+            handler_logger_->info("server get telemetry all");
+
+            std::vector<char*> telemetry_all = udp_server.getTelemetryAll();
+            for (int indx = 0; indx < telemetry_all.size(); indx++) {
+                handler_logger_->info("#{} telemetry: {}", indx, telemetry_all[indx]);
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+            handler_logger_->info("Polling iteration end, wait {} millis...", PollingRate_);
+            std::this_thread::sleep_for(std::chrono::milliseconds(PollingRate_));
+
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-
-        handler_logger_->info("server get telemetry all");
-
-        std::vector<char*> telemetry_all= udp_server.getTelemetryAll();
-        for (int indx=0; indx<telemetry_all.size(); indx++) {
-            handler_logger_->info("#{} telemetry: {}", indx, telemetry_all[indx]);
-        }        
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 
         handler_logger_->info("server exit all");
 
         std::vector<bool> exit_all = udp_server.exitAll();
         for (int indx=0; indx<exit_all.size(); indx++) {
-            handler_logger_->info("#{} exit status: {}", indx, std::to_string(exit_all[indx]));
+            handler_logger_->info("#{} exit status: {}", indx,
+            std::to_string(exit_all[indx]));
         }
-
-        
     }
 
     Handler::~Handler() {
