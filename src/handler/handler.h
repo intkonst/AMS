@@ -8,7 +8,7 @@
 
 namespace handler {
 
-    void handler_main();
+    void handler_main(db::Database);
 
     class Handler {
       private:
@@ -17,18 +17,20 @@ namespace handler {
         int SocketConnectionTimeout_;
         int CountOfPolls_;
         int SocketConnectionPort_;
-        db::Database Database_;
 
+        db::Database database_;
+
+        std::shared_ptr<spdlog::logger> handler_logger_;
         std::string LoggerName_;
         std::string PathToLoggerFile_;
         std::string LoggingLevel_;
         int MaxFileSize_;
         int MaxFiles_;
 
-        std::shared_ptr<spdlog::logger> handler_logger_;
+        
 
       public:
-        Handler();
+        Handler(db::Database database);
         void run();
         ~Handler();
     };

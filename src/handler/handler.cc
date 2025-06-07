@@ -11,23 +11,17 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 
-
 #include "handler.h"
 #include "sock/udp_server.h"
 #include "../db/db.h"
-#include "../api/api.h"
+
 
 namespace {
-
-    const std::string ConfigFileName = "config.json";
-    std::ostrstream out;  // for custom output strings (temporary solution, change to formatting)
-
-    void thread_load_example() { std::this_thread::sleep_for(std::chrono::milliseconds(1000)); }
+    const std::string ConfigFilePath = "config.json";
 
     std::time_t stringToTstamp(const std::string& datetime) {
         std::tm tm = {};
         std::istringstream ss(datetime);
-
         ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
         if (ss.fail()) {
             throw std::runtime_error("Failed to parse datetime string: " + datetime);
@@ -39,18 +33,18 @@ namespace {
 
 namespace handler {
 
-    void handler_main() {  // entry point of a stream
-        handler::Handler handler {};
+    void handler_main(db::Database database) {  // entry point of a stream
+        Handler handler(database);
         handler.run();
     }
 
-    Handler::Handler() :  Database_("host=localhost dbname=test user=postgres password=1408") {  // init work mode
+    Handler::Handler(db::Database database)
+        : database_(database) {  // init work mode
 
-
-        std::ifstream file(ConfigFileName);
+        std::ifstream file(ConfigFilePath);
 
         if (!file) {
-            handler_logger_->error("Error: Could not open config file at {}", ConfigFileName);
+            handler_logger_->error("Error: Could not open config file at {}", ConfigFilePath);
             return;
         }
 
@@ -82,15 +76,11 @@ namespace handler {
 
         handler_logger_->flush_on(spdlog::level::info);
         spdlog::flush_every(std::chrono::seconds(1));
+        
         handler_logger_->info("run handler thread logger");
-
-        out << "run handler thread with id=" << std::this_thread::get_id();
-        handler_logger_->info(out.str());
-        out.clear();
-
-        Database_.connect();
-        Database_.createTableIfNotExists();
-
+        handler_logger_->info(
+            fmt::format("run handler thread with id={}", std::this_thread::get_id())
+        );
 
         handler_logger_->debug(
             "read config file\n"
@@ -120,7 +110,9 @@ namespace handler {
         while (true) {
             handler_logger_->info("server ping all");
 
-            if (CountOfPolls_ == 0) { break; }
+            if (CountOfPolls_ == 0) {
+                break;
+            }
 
             CountOfPolls_--;
 
@@ -137,37 +129,30 @@ namespace handler {
                 handler_logger_->info("#{} telemetry: {}", indx, telemetry_all[indx]);
             }
 
-
-
             db::RecordVector data_to_db = telemetry_all;
-            Database_.addRecords(data_to_db);
+            database_.addRecords(data_to_db);
 
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
             handler_logger_->info("Polling iteration end, wait {} millis...", PollingRate_);
             std::this_thread::sleep_for(std::chrono::milliseconds(PollingRate_));
-
         }
-
 
         handler_logger_->info("server exit all");
 
         std::vector<bool> exit_all = udp_server.exitAll();
-        for (int indx=0; indx<exit_all.size(); indx++) {
-            handler_logger_->info("#{} exit status: {}", indx,
-            std::to_string(exit_all[indx]));
+        for (int indx = 0; indx < exit_all.size(); indx++) {
+            handler_logger_->info("#{} exit status: {}", indx, std::to_string(exit_all[indx]));
         }
 
-        Database_.printDatabase();
+        database_.printDatabase();
 
-        api::Server server = {Database_, "127.0.0.1"};
-        server.run();
 
     }
 
     Handler::~Handler() {
         if (handler_logger_) {
-            handler_logger_->info("exit handler");
+            handler_logger_->info("stop handler thread");
         }
     }
 

@@ -15,9 +15,6 @@
 
 #include "udp_server.h"
 
-namespace {
-    std::ostrstream out;
-}
 
 
 namespace message_keys {
@@ -251,14 +248,13 @@ namespace sock {
     }
 
     void Server::showConnectionList() {
-
+        std::ostrstream out;
         out << "All connections list: \n";
         for (size_t indx=0; indx<count_of_devices_; indx++) {
             out << "\n#" << indx+1 << "\n" << device_list_[indx] << "\n";
         }
         logger_->info(out.str());
         out.clear();
-
     }
 
     std::vector<bool> Server::pingAll() {

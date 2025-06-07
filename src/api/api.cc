@@ -6,35 +6,74 @@
 #include <string>
 
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <httplib.h>
+#include <fmt/core.h>
 
 #include "api.h"
 
 #define json_type "application/json"
 #define html_type "text/html"
 
-
 namespace {
-    const std::string ConfigFileName = "config.json";
-    std::ostringstream out;
+    const std::string ConfigFilePath = "config.json";
 }  // namespace
 
 namespace api {
-    void threadLoadExample() { std::this_thread::sleep_for(std::chrono::milliseconds(3000)); }
 
-    Server::Server(db::Database& database, std::string host, int port) : database(database), host(host), port(port), server() {}
+    void apiMain(db::Database database) {
+        api::API server = { database, "127.0.0.1" };
+        server.run();
+    }
 
-    void Server::run() {
-        auto& database = this->database;
-        server.Get("/api", [&database](const httplib::Request& req, httplib::Response& res) {
+    API::API(db::Database& database, std::string host, int port)
+        : database_(database), host_(host), port_(port), server_() {
+        std::ifstream file(ConfigFilePath);
+
+        if (!file) {
+            std::cerr << "Error: Could not open config file at " << ConfigFilePath << std::endl;
+            return;
+        }
+
+        if (file.peek() == std::ifstream::traits_type::eof()) {
+            std::cerr << "Error: Config file is empty" << std::endl;
+            return;
+        }
+
+        auto config = nlohmann::json::parse(file);
+
+        auto& logger_config = config["api"]["logger"];
+
+        const std::string& LoggerName_ = logger_config["LOGGER_NAME"];
+        const std::string& PathToLoggerFile_ = logger_config["PATH_TO_LOGGER_FILE"];
+        const std::string& LoggingLevel_ = logger_config["LOGGING_LEVEL"];
+        int MaxFileSize_ = logger_config["MAX_FILE_SIZE"];
+        int MaxFiles_ = logger_config["MAX_FILES"];
+
+        auto api_logger =
+        spdlog::rotating_logger_mt(LoggerName_, PathToLoggerFile_, MaxFileSize_, MaxFiles_);
+
+        
+        api_logger_->flush_on(spdlog::level::info);
+        spdlog::flush_every(std::chrono::seconds(1));
+
+        api_logger_->info("run api thread logger");
+        api_logger_->info(fmt::format("run api thread with id={}", std::this_thread::get_id()));
+        api_logger_->info("load test completed");
+    }
+
+    void API::run() {
+        auto& database = this->database_;
+        server_.Get("/api", [&database](const httplib::Request& req, httplib::Response& res) {
             std::string query = "SELECT * FROM measurements";
-            std::vector<std::string> keys = {"id", "tstamp", "device_id", "temperature", "humidity", "brightness", "test"};
+            std::vector<std::string> keys = { "id",       "tstamp",     "device_id", "temperature",
+                                              "humidity", "brightness", "test" };
 
             if (!req.params.empty()) {
                 auto isCorrect = [keys](std::string value) {
-                    for (auto &&key : keys) {
+                    for (auto&& key : keys) {
                         if (key == value) {
                             return true;
                         }
@@ -43,7 +82,7 @@ namespace api {
                 };
 
                 bool is_first = true;
-                for (auto &&param : req.params) {
+                for (auto&& param : req.params) {
                     if (!isCorrect(param.first)) {
                         return 400;
                     }
@@ -71,9 +110,10 @@ namespace api {
             PQclear(data);
         });
 
-        server.Get("/", [&database](const httplib::Request& req, httplib::Response& res) {
+        server_.Get("/", [&database](const httplib::Request& req, httplib::Response& res) {
             std::string query = "SELECT * FROM measurements;";
-            // std::vector<std::string> keys = {"id", "tstamp", "device_id", "temperature", "humidity", "brightness", "test"};
+            // std::vector<std::string> keys = {"id", "tstamp", "device_id", "temperature",
+            // "humidity", "brightness", "test"};
             std::string html = R"(
                 <!DOCTYPE html>
                 <html>
@@ -109,7 +149,7 @@ namespace api {
             res.set_content(html, html_type);
         });
 
-        server.Get("/request", [](const httplib::Request& req, httplib::Response& res) {
+        server_.Get("/request", [](const httplib::Request& req, httplib::Response& res) {
             std::string html = R"(
             <form method="post" action="/">
                 <div class="form-group">
@@ -138,13 +178,15 @@ namespace api {
             res.set_content(html, html_type);
         });
 
-        server.Post("/", [&database](const httplib::Request& req, httplib::Response& res) {
+        server_.Post("/", [&database](const httplib::Request& req, httplib::Response& res) {
             std::string query = "SELECT * FROM measurements";
-            std::vector<std::string> keys = {"id", "tstamp", "device_id", "temperature", "humidity", "brightness", "test"};
-            std::vector<std::string> fields = {"device_id", "temperature", "humidity", "brightness"};
+            std::vector<std::string> keys = { "id",       "tstamp",     "device_id", "temperature",
+                                              "humidity", "brightness", "test" };
+            std::vector<std::string> fields = { "device_id", "temperature", "humidity",
+                                                "brightness" };
 
             bool is_first = true;
-            for (auto &&field : fields) {
+            for (auto&& field : fields) {
                 std::string value = req.get_param_value(field);
                 std::cout << value << std::endl;
 
@@ -203,53 +245,17 @@ namespace api {
             </html>
             )";
 
-
             res.set_content(html, html_type);
 
             PQclear(data);
         });
 
-        server.listen(host, port);
-
+        server_.listen(host_, port_);
     }
 
-    void apiMain() {
-        /*ЧЕРНОВОЙ ВАРИАНТ ДЛЯ ТЕСТОВ, ПЕРЕДЕЛАТЬ ПОД ПОЛНОЦЕННЫЫЙ КЛАСС*/
-
-        std::ifstream file(ConfigFileName);
-
-        /*if (!file.is_open()) {*/
-        if (!file) {
-            std::cerr << "Error: Could not open config file at " << ConfigFileName << std::endl;
-            return;
+    API::~API() {
+        if (api_logger_) {
+            api_logger_->info("stop api thread");
         }
-
-        if (file.peek() == std::ifstream::traits_type::eof()) {
-            std::cerr << "Error: Config file is empty" << std::endl;
-            return;
-        }
-
-        auto config = nlohmann::json::parse(file);
-
-        auto& logger_config = config["api"]["logger"];
-
-        const std::string& LoggerName = logger_config["LOGGER_NAME"];
-        const std::string& PathToLoggerFile = logger_config["PATH_TO_LOGGER_FILE"];
-        const std::string& LoggingLevel = logger_config["LOGGING_LEVEL"];
-        int MaxFileSize = logger_config["MAX_FILE_SIZE"];
-        int MaxFiles = logger_config["MAX_FILES"];
-
-        auto api_logger =
-            spdlog::rotating_logger_mt(LoggerName, PathToLoggerFile, MaxFileSize, MaxFiles);
-
-        api_logger->info("run api thread logger");
-
-        out << "run api thread with id=" << std::this_thread::get_id();
-        api_logger->info(out.str());
-        api_logger->info("run api thread with id=%T");
-        out.clear();
-        api_logger->info("run load test - wait 3 sec");
-        threadLoadExample();
-        api_logger->info("load test completed");
     }
 }  // namespace api

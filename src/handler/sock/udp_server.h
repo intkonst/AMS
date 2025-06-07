@@ -10,7 +10,6 @@
 #include <spdlog/logger.h>
 
 namespace sock {
-
     class Device {
       private:
         static int id_gen_counter_;
