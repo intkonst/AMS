@@ -8,7 +8,7 @@
 
 namespace handler {
 
-    void handler_main(db::Database);
+    void handlerMain(db::Database* database);
 
     class Handler {
       private:
@@ -30,7 +30,7 @@ namespace handler {
         
 
       public:
-        Handler(db::Database database);
+        Handler(db::Database* database);
         void run();
         ~Handler();
     };

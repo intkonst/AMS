@@ -19,6 +19,12 @@
 namespace {
     const std::string ConfigFilePath = "config.json";
 
+    std::string threadIdToString(const std::thread::id& id) {
+        std::ostringstream oss;
+        oss << id;
+        return oss.str();
+    }
+
     std::time_t stringToTstamp(const std::string& datetime) {
         std::tm tm = {};
         std::istringstream ss(datetime);
@@ -33,13 +39,13 @@ namespace {
 
 namespace handler {
 
-    void handler_main(db::Database database) {  // entry point of a stream
+    void handlerMain(db::Database* database) {  // entry point of a stream
         Handler handler(database);
         handler.run();
     }
 
-    Handler::Handler(db::Database database)
-        : database_(database) {  // init work mode
+    Handler::Handler(db::Database* database)
+        : database_(*database) {  // init work mode
 
         std::ifstream file(ConfigFilePath);
 
@@ -76,10 +82,10 @@ namespace handler {
 
         handler_logger_->flush_on(spdlog::level::info);
         spdlog::flush_every(std::chrono::seconds(1));
-        
+
         handler_logger_->info("run handler thread logger");
         handler_logger_->info(
-            fmt::format("run handler thread with id={}", std::this_thread::get_id())
+            fmt::format("run handler thread with id={}", threadIdToString(std::this_thread::get_id()))
         );
 
         handler_logger_->debug(

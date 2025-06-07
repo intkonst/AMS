@@ -19,17 +19,23 @@
 
 namespace {
     const std::string ConfigFilePath = "config.json";
+
+    std::string threadIdToString(const std::thread::id& id) {
+        std::ostringstream oss;
+        oss << id;
+        return oss.str();
+    }
 }  // namespace
 
 namespace api {
 
-    void apiMain(db::Database database) {
-        api::API server = { database, "127.0.0.1" };
+    void apiMain(db::Database* database) {
+        api::API server { database, "127.0.0.1" };
         server.run();
     }
 
-    API::API(db::Database& database, std::string host, int port)
-        : database_(database), host_(host), port_(port), server_() {
+    API::API(db::Database* database, std::string host, int port)
+        : database_(*database), host_(host), port_(port), server_() {
         std::ifstream file(ConfigFilePath);
 
         if (!file) {
@@ -60,7 +66,7 @@ namespace api {
         spdlog::flush_every(std::chrono::seconds(1));
 
         api_logger_->info("run api thread logger");
-        api_logger_->info(fmt::format("run api thread with id={}", std::this_thread::get_id()));
+        api_logger_->info(fmt::format("run api thread with id={}", threadIdToString(std::this_thread::get_id())));
         api_logger_->info("load test completed");
     }
 

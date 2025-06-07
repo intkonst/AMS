@@ -1,13 +1,16 @@
 #pragma once
 
+#include <string>
+
 #include <httplib.h>
+#include <spdlog/logger.h>
 
 #include "../db/db.h"
 
 
 namespace api {
 
-    void apiMain();
+    void apiMain(db::Database* database);
 
     class API { //TODO: add logging
       private:
@@ -24,7 +27,7 @@ namespace api {
         int MaxFiles_;
         
       public:
-        API(db::Database& database, std::string host="0.0.0.0", int port=8080);
+        API(db::Database* database, std::string host="0.0.0.0", int port=8080);
         void run();
         ~API();
     };
