@@ -15,6 +15,7 @@
 #include "handler.h"
 #include "sock/udp_server.h"
 #include "../db/db.h"
+#include "../api/api.h"
 
 namespace {
 
@@ -43,8 +44,8 @@ namespace handler {
         handler.run();
     }
 
-    Handler::Handler() :  Database_("host=localhost dbname=test user=postgres") {  // init work mode
-       
+    Handler::Handler() :  Database_("host=localhost dbname=test user=postgres password=1408") {  // init work mode
+
 
         std::ifstream file(ConfigFileName);
 
@@ -139,7 +140,7 @@ namespace handler {
 
 
             db::RecordVector data_to_db = telemetry_all;
-            Database_.addRecords(data_to_db);    
+            Database_.addRecords(data_to_db);
 
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -158,6 +159,9 @@ namespace handler {
         }
 
         Database_.printDatabase();
+
+        api::Server server = {Database_, "127.0.0.1"};
+        server.run();
 
     }
 
