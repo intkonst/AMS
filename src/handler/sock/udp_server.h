@@ -3,6 +3,7 @@
 #define BUFFER_SIZE 1024
 
 #include <string>
+#include <sys/time.h>
 #include <ctime>
 #include <vector>
 #include <netinet/in.h>
