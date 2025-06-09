@@ -1,5 +1,6 @@
 {
     "main":{
+        "DB_AUTH_KEY" : "host=localhost dbname=test user=postgres password=1408",
         "logger":{
             "LOGGER_NAME": "main",
             "PATH_TO_LOGGER_FILE": "log/main.log",

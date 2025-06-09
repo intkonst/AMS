@@ -83,7 +83,6 @@ namespace handler {
         handler_logger_->flush_on(spdlog::level::info);
         spdlog::flush_every(std::chrono::seconds(1));
 
-        handler_logger_->info("run handler thread logger");
         handler_logger_->info(
             fmt::format("run handler thread with id={}", threadIdToString(std::this_thread::get_id()))
         );

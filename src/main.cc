@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <thread>
 #include <filesystem>
 #include <fstream>
@@ -39,7 +40,11 @@ int main(int, char**) {
 
     auto config = nlohmann::json::parse(file);
 
-    auto& logger_config = config["main"]["logger"];
+    auto& main_config = config["main"];
+
+    const std::string& DbAuthKey = main_config["DB_AUTH_KEY"];
+
+    auto& logger_config = main_config["logger"];
 
     const std::string& LoggerName = logger_config["LOGGER_NAME"];
     const std::string& PathToLoggerFile = logger_config["PATH_TO_LOGGER_FILE"];
@@ -58,8 +63,7 @@ int main(int, char**) {
         fmt::format("run main thread with id={}", threadIdToString(std::this_thread::get_id()))
     );
 
-    // create DB (add init here)
-    db::Database database("host=localhost dbname=test user=postgres password=1408");
+    db::Database database(DbAuthKey); // init DB
     database.connect();
     database.createTableIfNotExists();
 

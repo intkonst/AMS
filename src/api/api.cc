@@ -65,7 +65,6 @@ namespace api {
         api_logger_->flush_on(spdlog::level::info);
         spdlog::flush_every(std::chrono::seconds(1));
 
-        api_logger_->info("run api thread logger");
         api_logger_->info(fmt::format("run api thread with id={}", threadIdToString(std::this_thread::get_id())));
         api_logger_->info("load test completed");
     }
