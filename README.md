@@ -12,3 +12,5 @@
 - immutable variables - PascalCase
 - macros - SNAKE_CASE
 - namespaces - snake_case
+
+#
