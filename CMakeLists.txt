@@ -9,6 +9,9 @@ project(
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(PostgreSQL REQUIRED)
+include_directories(${PostgreSQL_INCLUDE_DIRS})
+
 set(AMS_SOURCES
     src/main.cc
     src/api/api.cc
@@ -79,7 +82,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     httplib
     spdlog::spdlog
     nlohmann_json::nlohmann_json
-    pq
+    PostgreSQL::PostgreSQL
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

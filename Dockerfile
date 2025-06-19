@@ -9,7 +9,9 @@ RUN apk update && \
     make \
     g++ \
     postgresql-dev \
-    linux-headers
+    libpq-dev \
+    linux-headers \
+    fmt-dev
 
 # Клонируем репозиторий
 RUN git clone https://github.com/intkonst/AMS.git /AMS
@@ -26,7 +28,9 @@ FROM alpine:latest
 RUN apk update && \
     apk add --no-cache \
     libstdc++ \
-    postgresql-libs && \
+    postgresql-libs \
+    libpq-dev\
+    postgresql-dev linux-headers && \
     # Создаем пользователя для безопасности
     adduser -D appuser
 

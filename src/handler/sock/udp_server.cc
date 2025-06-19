@@ -3,6 +3,7 @@
 #include <vector>
 #include <ctime>
 #include <cstring>
+#include <sys/time.h>
 #include <spdlog/spdlog.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
