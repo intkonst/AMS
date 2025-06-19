@@ -13,4 +13,3 @@
 - macros - SNAKE_CASE
 - namespaces - snake_case
 
-#
