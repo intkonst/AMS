@@ -53,7 +53,6 @@ int main(int, char**) {
     const int MaxFiles = logger_config["MAX_FILES"];
 
     auto main_logger =  // run main thread logger logger
-
         spdlog::rotating_logger_mt(LoggerName, PathToLoggerFile, MaxFileSize, MaxFiles);
 
     main_logger->flush_on(spdlog::level::info);
@@ -63,7 +62,7 @@ int main(int, char**) {
         fmt::format("run main thread with id={}", threadIdToString(std::this_thread::get_id()))
     );
 
-    db::Database database(DbAuthKey); // init DB
+    db::Database database(DbAuthKey);  // init DB
     database.connect();
     database.createTableIfNotExists();
 
